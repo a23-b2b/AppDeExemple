@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">AppDeExemple</string>
     <string name="lancer">lancer</string>
+    <string name="joueur">Joueur</string>
+    <string name="garder">garder</string>
 </resources>
