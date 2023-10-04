@@ -70,6 +70,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var texteScoreJ2: TextView
     private lateinit var texteJoueur: TextView
 
+    // créer un ViewModel pour l'activité
     private val viewModel: JeuDeViewModel by viewModels()
 
 
@@ -96,11 +97,13 @@ class MainActivity : AppCompatActivity() {
         majUI()
     }
 
+    // Charger le menu
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return true
     }
 
+    // Gérer les actions du menu
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             R.id.nouvelle -> nouvellePartie()
@@ -110,6 +113,7 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    // Lancer le dé
     private fun lancerDe() {
         viewModel.valeurDe = de.lancer()
         if (viewModel.valeurDe != 1) {
@@ -123,6 +127,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Garder le score du tour
     private fun garder() {
         viewModel.joueurs[viewModel.joueurCourant].garder()
         if (viewModel.joueurs[viewModel.joueurCourant].score >= 50) {
@@ -141,6 +146,7 @@ class MainActivity : AppCompatActivity() {
         majUI()
     }
 
+    // recommencer une partie
     private fun nouvellePartie() {
         viewModel.reset()
         majUI()
