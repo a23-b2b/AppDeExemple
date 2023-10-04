@@ -8,6 +8,8 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.lifecycle.ViewModel
 
 /**
  * Dé avec un nombre de faces fixe.
@@ -22,10 +24,39 @@ class De(private val nombreFaces: Int) {
     }
 }
 
+/**
+ * Joueur avec un nom et un score
+ */
 class Joueur(var nom: String = "Joueur", var score: Int = 0, var scoreTour: Int = 0) {
     fun garder() {
         score += scoreTour
         scoreTour = 0
+    }
+}
+
+/**
+ * ViewModel pour le jeu de dé
+ */
+class JeuDeViewModel : ViewModel() {
+    fun changerJoueur() {
+        joueurCourant = (joueurCourant + 1) % 2
+    }
+
+    var valeurDe: Int = 0
+
+    // créer un tableau de joueurs
+    val joueurs: Array<Joueur> = arrayOf(Joueur("Joueur 1"), Joueur("Joueur 2"))
+    var joueurCourant: Int = 0
+
+    fun getJoueurCourant(): Joueur {
+        return joueurs[joueurCourant]
+    }
+
+    fun reset() {
+        joueurs[0].score = 0
+        joueurs[0].scoreTour = 0
+        joueurs[1].score = 0
+        joueurs[1].scoreTour = 0
     }
 }
 
@@ -38,10 +69,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var texteScoreJ1: TextView
     private lateinit var texteScoreJ2: TextView
     private lateinit var texteJoueur: TextView
-    private var joueurCourant: Int = 0
 
-    // créer un tableau de joueurs
-    private val joueurs: Array<Joueur> = arrayOf(Joueur("Joueur 1"), Joueur("Joueur 2"))
+    private val viewModel: JeuDeViewModel by viewModels()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,48 +111,38 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun lancerDe() {
-        val score = de.lancer()
-        when (score) {
-            1 -> imageDe.setImageResource(R.drawable.dice_1)
-            2 -> imageDe.setImageResource(R.drawable.dice_2)
-            3 -> imageDe.setImageResource(R.drawable.dice_3)
-            4 -> imageDe.setImageResource(R.drawable.dice_4)
-            5 -> imageDe.setImageResource(R.drawable.dice_5)
-            6 -> imageDe.setImageResource(R.drawable.dice_6)
-        }
-        if (score != 1) {
+        viewModel.valeurDe = de.lancer()
+        if (viewModel.valeurDe != 1) {
             // ajouter le score du tour au score du joueur
-            joueurs[joueurCourant].scoreTour += score
+            viewModel.getJoueurCourant().scoreTour += viewModel.valeurDe
             majUI()
         } else {
             // le score du tour est perdu
-            joueurs[joueurCourant].scoreTour = 0
+            viewModel.getJoueurCourant().scoreTour = 0
             changerJoueur()
         }
     }
 
-    private fun garder(){
-        joueurs[joueurCourant].garder()
-        if (joueurs[joueurCourant].score >= 50) {
+    private fun garder() {
+        viewModel.joueurs[viewModel.joueurCourant].garder()
+        if (viewModel.joueurs[viewModel.joueurCourant].score >= 50) {
             // le joueur a gagné
-            Toast.makeText(this, "${joueurs[joueurCourant].nom} a gagné!", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "${viewModel.getJoueurCourant().nom} a gagné!", Toast.LENGTH_LONG)
+                .show()
             nouvellePartie()
-        }else{
+        } else {
             changerJoueur()
         }
     }
 
     // changer de joueur
     private fun changerJoueur() {
-        joueurCourant = (joueurCourant + 1) % 2
+        viewModel.changerJoueur()
         majUI()
     }
 
     private fun nouvellePartie() {
-        joueurs[0].score = 0
-        joueurs[0].scoreTour = 0
-        joueurs[1].score = 0
-        joueurs[1].scoreTour = 0
+        viewModel.reset()
         majUI()
     }
 
@@ -131,10 +150,18 @@ class MainActivity : AppCompatActivity() {
      * Mettre à jour l'interface utilisateur
      */
     private fun majUI() {
-        texteJoueur.text = joueurs[joueurCourant].nom
-        texteScoreJ1.text = joueurs[0].score.toString()
-        texteScoreJ2.text = joueurs[1].score.toString()
-        texteScore.text = joueurs[joueurCourant].scoreTour.toString()
+        when (viewModel.valeurDe) {
+            1 -> imageDe.setImageResource(R.drawable.dice_1)
+            2 -> imageDe.setImageResource(R.drawable.dice_2)
+            3 -> imageDe.setImageResource(R.drawable.dice_3)
+            4 -> imageDe.setImageResource(R.drawable.dice_4)
+            5 -> imageDe.setImageResource(R.drawable.dice_5)
+            6 -> imageDe.setImageResource(R.drawable.dice_6)
+        }
+        texteJoueur.text = viewModel.getJoueurCourant().nom
+        texteScoreJ1.text = viewModel.joueurs[0].score.toString()
+        texteScoreJ2.text = viewModel.joueurs[1].score.toString()
+        texteScore.text = viewModel.getJoueurCourant().scoreTour.toString()
     }
 
     /**
