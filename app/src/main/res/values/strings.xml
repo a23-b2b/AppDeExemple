@@ -3,4 +3,6 @@
     <string name="lancer">lancer</string>
     <string name="joueur">Joueur</string>
     <string name="garder">garder</string>
+    <string name="nouvelle_partie">Nouvelle Partie</string>
+    <string name="quitter">Quitter</string>
 </resources>

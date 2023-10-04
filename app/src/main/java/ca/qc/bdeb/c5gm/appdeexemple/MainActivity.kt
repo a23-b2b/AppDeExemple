@@ -2,6 +2,8 @@ package ca.qc.bdeb.c5gm.appdeexemple
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -45,6 +47,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        setSupportActionBar(findViewById(R.id.toolbar))
         // Trouver l'image dans le layout
         imageDe = findViewById(R.id.imageView)
 
@@ -62,6 +65,20 @@ class MainActivity : AppCompatActivity() {
         boutonLancer.setOnClickListener { lancerDe() }
         boutonGarder.setOnClickListener { garder() }
         majUI()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.nouvelle -> nouvellePartie()
+            R.id.quitter -> quitter()
+            else -> return super.onOptionsItemSelected(item)
+        }
+        return true
     }
 
     private fun lancerDe() {
@@ -118,6 +135,13 @@ class MainActivity : AppCompatActivity() {
         texteScoreJ1.text = joueurs[0].score.toString()
         texteScoreJ2.text = joueurs[1].score.toString()
         texteScore.text = joueurs[joueurCourant].scoreTour.toString()
+    }
+
+    /**
+     * Quitter l'application
+     */
+    private fun quitter() {
+        finish()
     }
 }
 
