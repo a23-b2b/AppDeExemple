@@ -10,6 +10,11 @@
         android:title="@string/nouvelle_partie"
         app:showAsAction="always" />
     <item
+        android:id="@+id/options"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/options" />
+    <item
         android:id="@+id/quitter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

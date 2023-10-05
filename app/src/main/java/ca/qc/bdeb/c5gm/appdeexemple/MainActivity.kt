@@ -1,13 +1,17 @@
 package ca.qc.bdeb.c5gm.appdeexemple
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.ViewModel
 
@@ -62,6 +66,9 @@ class JeuDeViewModel : ViewModel() {
 
 const val NOMBRE_FACES = 6
 
+const val EXTRA_JOUEUR_1 = "EXTRA_JOUEUR1"
+const val EXTRA_JOUEUR_2 = "EXTRA_JOUEUR2"
+const val TAG = "debugApp"
 class MainActivity : AppCompatActivity() {
     private val de = De(NOMBRE_FACES)
     private lateinit var imageDe: ImageView
@@ -73,6 +80,20 @@ class MainActivity : AppCompatActivity() {
     // créer un ViewModel pour l'activité
     private val viewModel: JeuDeViewModel by viewModels()
 
+    // créer un ActivityResultLauncher pour l'activité 2
+    val activity2 = registerForActivityResult(ActivityResultContracts.StartActivityForResult())
+    { result: ActivityResult ->
+        if (result.resultCode == RESULT_OK) {
+            val intent = result.data ?: Intent()
+            if (intent.hasExtra(EXTRA_JOUEUR_1)) {
+                viewModel.joueurs[0].nom = intent.getStringExtra(EXTRA_JOUEUR_1).let { it.toString() }
+                viewModel.joueurs[1].nom = intent.getStringExtra(EXTRA_JOUEUR_2).let { it.toString() }
+                Log.d(TAG, viewModel.joueurs[0].nom)
+                Log.d(TAG, viewModel.joueurs[1].nom)
+                majUI()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -107,6 +128,12 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             R.id.nouvelle -> nouvellePartie()
+            R.id.options -> {
+                val intent = Intent(applicationContext, ModifierNom::class.java)
+                intent.putExtra(EXTRA_JOUEUR_1, viewModel.joueurs.get(0).nom)
+                intent.putExtra(EXTRA_JOUEUR_2, viewModel.joueurs.get(1).nom)
+                activity2.launch(intent)
+            }
             R.id.quitter -> quitter()
             else -> return super.onOptionsItemSelected(item)
         }
