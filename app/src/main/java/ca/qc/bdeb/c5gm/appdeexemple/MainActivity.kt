@@ -1,13 +1,19 @@
 package ca.qc.bdeb.c5gm.appdeexemple
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.lifecycle.ViewModel
 
 /**
  * Dé avec un nombre de faces fixe.
@@ -22,6 +28,9 @@ class De(private val nombreFaces: Int) {
     }
 }
 
+/**
+ * Joueur avec un nom et un score
+ */
 class Joueur(var nom: String = "Joueur", var score: Int = 0, var scoreTour: Int = 0) {
     fun garder() {
         score += scoreTour
@@ -29,8 +38,37 @@ class Joueur(var nom: String = "Joueur", var score: Int = 0, var scoreTour: Int 
     }
 }
 
+/**
+ * ViewModel pour le jeu de dé
+ */
+class JeuDeViewModel : ViewModel() {
+    fun changerJoueur() {
+        joueurCourant = (joueurCourant + 1) % 2
+    }
+
+    var valeurDe: Int = 0
+
+    // créer un tableau de joueurs
+    val joueurs: Array<Joueur> = arrayOf(Joueur("Joueur 1"), Joueur("Joueur 2"))
+    var joueurCourant: Int = 0
+
+    fun getJoueurCourant(): Joueur {
+        return joueurs[joueurCourant]
+    }
+
+    fun reset() {
+        joueurs[0].score = 0
+        joueurs[0].scoreTour = 0
+        joueurs[1].score = 0
+        joueurs[1].scoreTour = 0
+    }
+}
+
 const val NOMBRE_FACES = 6
 
+const val EXTRA_JOUEUR_1 = "EXTRA_JOUEUR1"
+const val EXTRA_JOUEUR_2 = "EXTRA_JOUEUR2"
+const val TAG = "debugApp"
 class MainActivity : AppCompatActivity() {
     private val de = De(NOMBRE_FACES)
     private lateinit var imageDe: ImageView
@@ -38,11 +76,24 @@ class MainActivity : AppCompatActivity() {
     private lateinit var texteScoreJ1: TextView
     private lateinit var texteScoreJ2: TextView
     private lateinit var texteJoueur: TextView
-    private var joueurCourant: Int = 0
 
-    // créer un tableau de joueurs
-    private val joueurs: Array<Joueur> = arrayOf(Joueur("Joueur 1"), Joueur("Joueur 2"))
+    // créer un ViewModel pour l'activité
+    private val viewModel: JeuDeViewModel by viewModels()
 
+    // créer un ActivityResultLauncher pour l'activité 2
+    val activity2 = registerForActivityResult(ActivityResultContracts.StartActivityForResult())
+    { result: ActivityResult ->
+        if (result.resultCode == RESULT_OK) {
+            val intent = result.data ?: Intent()
+            if (intent.hasExtra(EXTRA_JOUEUR_1)) {
+                viewModel.joueurs[0].nom = intent.getStringExtra(EXTRA_JOUEUR_1).let { it.toString() }
+                viewModel.joueurs[1].nom = intent.getStringExtra(EXTRA_JOUEUR_2).let { it.toString() }
+                Log.d(TAG, viewModel.joueurs[0].nom)
+                Log.d(TAG, viewModel.joueurs[1].nom)
+                majUI()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,63 +118,64 @@ class MainActivity : AppCompatActivity() {
         majUI()
     }
 
+    // Charger le menu
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return true
     }
 
+    // Gérer les actions du menu
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             R.id.nouvelle -> nouvellePartie()
+            R.id.options -> {
+                val intent = Intent(applicationContext, ModifierNom::class.java)
+                intent.putExtra(EXTRA_JOUEUR_1, viewModel.joueurs.get(0).nom)
+                intent.putExtra(EXTRA_JOUEUR_2, viewModel.joueurs.get(1).nom)
+                activity2.launch(intent)
+            }
             R.id.quitter -> quitter()
             else -> return super.onOptionsItemSelected(item)
         }
         return true
     }
 
+    // Lancer le dé
     private fun lancerDe() {
-        val score = de.lancer()
-        when (score) {
-            1 -> imageDe.setImageResource(R.drawable.dice_1)
-            2 -> imageDe.setImageResource(R.drawable.dice_2)
-            3 -> imageDe.setImageResource(R.drawable.dice_3)
-            4 -> imageDe.setImageResource(R.drawable.dice_4)
-            5 -> imageDe.setImageResource(R.drawable.dice_5)
-            6 -> imageDe.setImageResource(R.drawable.dice_6)
-        }
-        if (score != 1) {
+        viewModel.valeurDe = de.lancer()
+        if (viewModel.valeurDe != 1) {
             // ajouter le score du tour au score du joueur
-            joueurs[joueurCourant].scoreTour += score
+            viewModel.getJoueurCourant().scoreTour += viewModel.valeurDe
             majUI()
         } else {
             // le score du tour est perdu
-            joueurs[joueurCourant].scoreTour = 0
+            viewModel.getJoueurCourant().scoreTour = 0
             changerJoueur()
         }
     }
 
-    private fun garder(){
-        joueurs[joueurCourant].garder()
-        if (joueurs[joueurCourant].score >= 50) {
+    // Garder le score du tour
+    private fun garder() {
+        viewModel.joueurs[viewModel.joueurCourant].garder()
+        if (viewModel.joueurs[viewModel.joueurCourant].score >= 50) {
             // le joueur a gagné
-            Toast.makeText(this, "${joueurs[joueurCourant].nom} a gagné!", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "${viewModel.getJoueurCourant().nom} a gagné!", Toast.LENGTH_LONG)
+                .show()
             nouvellePartie()
-        }else{
+        } else {
             changerJoueur()
         }
     }
 
     // changer de joueur
     private fun changerJoueur() {
-        joueurCourant = (joueurCourant + 1) % 2
+        viewModel.changerJoueur()
         majUI()
     }
 
+    // recommencer une partie
     private fun nouvellePartie() {
-        joueurs[0].score = 0
-        joueurs[0].scoreTour = 0
-        joueurs[1].score = 0
-        joueurs[1].scoreTour = 0
+        viewModel.reset()
         majUI()
     }
 
@@ -131,10 +183,18 @@ class MainActivity : AppCompatActivity() {
      * Mettre à jour l'interface utilisateur
      */
     private fun majUI() {
-        texteJoueur.text = joueurs[joueurCourant].nom
-        texteScoreJ1.text = joueurs[0].score.toString()
-        texteScoreJ2.text = joueurs[1].score.toString()
-        texteScore.text = joueurs[joueurCourant].scoreTour.toString()
+        when (viewModel.valeurDe) {
+            1 -> imageDe.setImageResource(R.drawable.dice_1)
+            2 -> imageDe.setImageResource(R.drawable.dice_2)
+            3 -> imageDe.setImageResource(R.drawable.dice_3)
+            4 -> imageDe.setImageResource(R.drawable.dice_4)
+            5 -> imageDe.setImageResource(R.drawable.dice_5)
+            6 -> imageDe.setImageResource(R.drawable.dice_6)
+        }
+        texteJoueur.text = viewModel.getJoueurCourant().nom
+        texteScoreJ1.text = viewModel.joueurs[0].score.toString()
+        texteScoreJ2.text = viewModel.joueurs[1].score.toString()
+        texteScore.text = viewModel.getJoueurCourant().scoreTour.toString()
     }
 
     /**
