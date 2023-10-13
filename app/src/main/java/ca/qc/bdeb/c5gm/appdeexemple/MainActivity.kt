@@ -138,6 +138,10 @@ class MainActivity : AppCompatActivity() {
                 intent.putExtra(EXTRA_JOUEUR_2, viewModel.joueurs.get(1).nom)
                 activity2.launch(intent)
             }
+            R.id.score -> {
+                val intent = Intent(applicationContext, ScoreActivity::class.java)
+                startActivity(intent)
+            }
             R.id.quitter -> quitter()
             else -> return super.onOptionsItemSelected(item)
         }
@@ -166,7 +170,7 @@ class MainActivity : AppCompatActivity() {
             // ajouter le score de la partie aux meilleurs scores
             val meilleurScore = MeilleurScore(null, viewModel.joueurs[0].nom, viewModel.joueurs[0].score, viewModel.joueurs[1].nom, viewModel.joueurs[1].score)
             lifecycleScope.launch(Dispatchers.IO) {
-                val dao = AppDatabase.getDatabase(applicationContext).scoreDao()
+                val dao = ScoreDatabase.getDatabase(applicationContext).scoreDao()
                 dao.insertAll(meilleurScore)
             }
             // le joueur a gagné

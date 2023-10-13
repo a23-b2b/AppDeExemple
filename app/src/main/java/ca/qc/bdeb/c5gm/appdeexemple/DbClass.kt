@@ -36,21 +36,21 @@ interface ScoreDao {
 }
 
 @Database(entities = [MeilleurScore::class], version = 1)
-abstract class AppDatabase : RoomDatabase() {
+abstract class ScoreDatabase : RoomDatabase() {
     abstract fun scoreDao(): ScoreDao
     companion object {
         // Singleton empêche plusieurs instances de la base
         // d'être ouvertes en même temps
         @Volatile
-        private var INSTANCE: AppDatabase? = null
-        fun getDatabase(context: Context): AppDatabase {
+        private var INSTANCE: ScoreDatabase? = null
+        fun getDatabase(context: Context): ScoreDatabase {
             // si INSTANCE n'est pas null, on le retourne,
             // sinon, on crée la base de données
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    AppDatabase::class.java,
-                    "sqlite_database"
+                    ScoreDatabase::class.java,
+                    "scores_database"
                 ) .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
