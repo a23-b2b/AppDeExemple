@@ -6,4 +6,5 @@
     <string name="nouvelle_partie">Nouvelle Partie</string>
     <string name="quitter">Quitter</string>
     <string name="options">Options</string>
+    <string name="scores">Scores</string>
 </resources>
