@@ -61,11 +61,6 @@ class ScoresAdapter(private val scores: MutableList<MeilleurScore>) :
     override fun getItemCount(): Int {
         return scores.size
     }
-//
-//    fun addScore(score: MeilleurScore) {
-//        scores.add(score)
-//        notifyDataSetChanged()
-//    }
 }
 
 

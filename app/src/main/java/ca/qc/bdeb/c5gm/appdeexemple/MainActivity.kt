@@ -138,7 +138,7 @@ class MainActivity : AppCompatActivity() {
                 intent.putExtra(EXTRA_JOUEUR_2, viewModel.joueurs.get(1).nom)
                 activity2.launch(intent)
             }
-            R.id.score -> {
+            R.id.scores -> {
                 val intent = Intent(applicationContext, ScoreActivity::class.java)
                 startActivity(intent)
             }
