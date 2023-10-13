@@ -14,6 +14,9 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Dé avec un nombre de faces fixe.
@@ -76,6 +79,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var texteScoreJ1: TextView
     private lateinit var texteScoreJ2: TextView
     private lateinit var texteJoueur: TextView
+
 
     // créer un ViewModel pour l'activité
     private val viewModel: JeuDeViewModel by viewModels()
@@ -158,6 +162,13 @@ class MainActivity : AppCompatActivity() {
     private fun garder() {
         viewModel.joueurs[viewModel.joueurCourant].garder()
         if (viewModel.joueurs[viewModel.joueurCourant].score >= 50) {
+
+            // ajouter le score de la partie aux meilleurs scores
+            val meilleurScore = MeilleurScore(null, viewModel.joueurs[0].nom, viewModel.joueurs[0].score, viewModel.joueurs[1].nom, viewModel.joueurs[1].score)
+            lifecycleScope.launch(Dispatchers.IO) {
+                val dao = AppDatabase.getDatabase(applicationContext).scoreDao()
+                dao.insertAll(meilleurScore)
+            }
             // le joueur a gagné
             Toast.makeText(this, "${viewModel.getJoueurCourant().nom} a gagné!", Toast.LENGTH_LONG)
                 .show()
