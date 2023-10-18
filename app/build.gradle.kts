@@ -59,5 +59,7 @@ dependencies {
     // optional - Kotlin Extensions and Coroutines support for Room
     implementation("androidx.room:room-ktx:$room_version")
 
+    implementation("androidx.fragment:fragment-ktx:1.6.1")
+
 
 }
