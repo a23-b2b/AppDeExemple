@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -15,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -72,6 +74,7 @@ const val NOMBRE_FACES = 6
 const val EXTRA_JOUEUR_1 = "EXTRA_JOUEUR1"
 const val EXTRA_JOUEUR_2 = "EXTRA_JOUEUR2"
 const val TAG = "debugApp"
+
 class MainActivity : AppCompatActivity() {
     private val de = De(NOMBRE_FACES)
     private lateinit var imageDe: ImageView
@@ -90,8 +93,10 @@ class MainActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             val intent = result.data ?: Intent()
             if (intent.hasExtra(EXTRA_JOUEUR_1)) {
-                viewModel.joueurs[0].nom = intent.getStringExtra(EXTRA_JOUEUR_1).let { it.toString() }
-                viewModel.joueurs[1].nom = intent.getStringExtra(EXTRA_JOUEUR_2).let { it.toString() }
+                viewModel.joueurs[0].nom =
+                    intent.getStringExtra(EXTRA_JOUEUR_1).let { it.toString() }
+                viewModel.joueurs[1].nom =
+                    intent.getStringExtra(EXTRA_JOUEUR_2).let { it.toString() }
                 Log.d(TAG, viewModel.joueurs[0].nom)
                 Log.d(TAG, viewModel.joueurs[1].nom)
                 majUI()
@@ -130,7 +135,7 @@ class MainActivity : AppCompatActivity() {
 
     // Gérer les actions du menu
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
+        when (item.itemId) {
             R.id.nouvelle -> nouvellePartie()
             R.id.options -> {
                 val intent = Intent(applicationContext, ModifierNom::class.java)
@@ -138,10 +143,12 @@ class MainActivity : AppCompatActivity() {
                 intent.putExtra(EXTRA_JOUEUR_2, viewModel.joueurs.get(1).nom)
                 activity2.launch(intent)
             }
+
             R.id.scores -> {
                 val intent = Intent(applicationContext, ScoreActivity::class.java)
                 startActivity(intent)
             }
+
             R.id.quitter -> quitter()
             else -> return super.onOptionsItemSelected(item)
         }
@@ -168,7 +175,13 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.joueurs[viewModel.joueurCourant].score >= 50) {
 
             // ajouter le score de la partie aux meilleurs scores
-            val meilleurScore = MeilleurScore(null, viewModel.joueurs[0].nom, viewModel.joueurs[0].score, viewModel.joueurs[1].nom, viewModel.joueurs[1].score)
+            val meilleurScore = MeilleurScore(
+                null,
+                viewModel.joueurs[0].nom,
+                viewModel.joueurs[0].score,
+                viewModel.joueurs[1].nom,
+                viewModel.joueurs[1].score
+            )
             lifecycleScope.launch(Dispatchers.IO) {
                 val dao = ScoreDatabase.getDatabase(applicationContext).scoreDao()
                 dao.insertAll(meilleurScore)
@@ -190,8 +203,15 @@ class MainActivity : AppCompatActivity() {
 
     // recommencer une partie
     private fun nouvellePartie() {
-        viewModel.reset()
-        majUI()
+        Snackbar.make(
+            findViewById(R.id.imageView),
+            "Nouvelle partie?",
+            Snackbar.LENGTH_LONG
+        ).setAction(R.string.confirmer, View.OnClickListener {
+            viewModel.reset()
+            majUI()
+        }
+        ).show()
     }
 
     /**
