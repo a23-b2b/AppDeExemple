@@ -41,6 +41,14 @@ class Joueur(var nom: String = "Joueur", var score: Int = 0, var scoreTour: Int 
         score += scoreTour
         scoreTour = 0
     }
+    fun reset() {
+        score = 0
+        scoreTour = 0
+    }
+
+    fun ajouterScoreAuTour(valeurDe: Int) {
+        scoreTour += valeurDe
+    }
 }
 
 /**
@@ -62,10 +70,8 @@ class JeuDeViewModel : ViewModel() {
     }
 
     fun reset() {
-        joueurs[0].score = 0
-        joueurs[0].scoreTour = 0
-        joueurs[1].score = 0
-        joueurs[1].scoreTour = 0
+        joueurs[0].reset()
+        joueurs[1].reset()
     }
 }
 
@@ -160,7 +166,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.valeurDe = de.lancer()
         if (viewModel.valeurDe != 1) {
             // ajouter le score du tour au score du joueur
-            viewModel.getJoueurCourant().scoreTour += viewModel.valeurDe
+            viewModel.getJoueurCourant().ajouterScoreAuTour(viewModel.valeurDe)
             majUI()
         } else {
             // le score du tour est perdu
